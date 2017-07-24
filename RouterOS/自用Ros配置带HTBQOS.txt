@@ -1,0 +1,277 @@
+
+
+
+
+
+
+#使用前必读: 此脚本内容为自定义的!如有错误请自行修改!Ros路由版本是6.x系列的!
+#网卡定义 内网网卡网桥定义为LAN 外网是PPPOE光纤拨号上网 网卡为Wan 虚拟拨号名称是pppoe-out
+#内网网段定义是192.168.88.0/24
+
+
+# jul/24/2017 10:30:02 by RouterOS 6.37.3
+# 1:导入L7标识
+/ip firewall layer7-protocol
+add name=Tencent_qq regexp="^.\?.\?[\\x02|\\x05]\\x22\\x27.+|^.\?.\?[\\x02|\\x\
+    05]\\x22\\x27.+[\\x03|\\x09]\$|^.\?.\?\\x02.+\\x03\$|^/xFE/x42../x42/x02/x\
+    0B/x7D/x98/x38/xE4.+"
+add name=Tencent_qqgame regexp="^.\?.\?\\x2D.+[\\x25\\x62\\x0E\\xC1\\x5F\\x6C|\
+    \\xFF\\xFF\\x20\\xCF\\x42\\x53|\\xFF\\xFF\\x10\\x17\\x87\\xA3|\\x3E\\x7F\\\
+    x20\\xCF\\x42\\x53|\\x1F\\x43\\x10\\x17\\x87\\xA3]|^\\x05\\x22.+\\x03\$"
+add name=PPStream regexp="^.\?.\?\\c.+\\c"
+add name=QQMusic regexp=\
+    "(^\\xFE.\?.\?.\?.\?\\xCF|^get.+\\qqmusic.\?\\qq.+\\qqmusic)"
+add name=QQLive regexp="(^get.+\\video.\?\\qq.+\\flv|^\\xFE.\?.\?.\?.\?\\xD3|^\
+    get.+\\video.\?\\qq.+\\mp4)"
+add name=Kugou regexp=\
+    "(^post.+\\x0D\\x0A\\x0D\\x0A|^http.+\\x0D\\x0A\\x0D\\x0A|^e)"
+add name=Http regexp="http/(0\\.9|1\\.0|1\\.1) [1-5][0-9][0-9] [\t-\r -~]*(con\
+    nection:|content-type:|content-length:|date:)|post [\t-\r -~]* http/[01]\\\
+    .[019]"
+add name=Http-img regexp="\\.jpg|\\.png|\\.gif|\\.bmp|\\.jpeg"
+add name=Http-web regexp=\
+    "\\.jsp|\\.shtml|\\.html|\\.htm|\\.php|\\.asp|\\.aspx|\\.cgi"
+add name=NetTV regexp=\
+    "^.*get.+(\\.flv|\\.f4v|\\.hlv|\\.rm|\\.swf|\\.wma|\\.mp4|\\.mp3).*\$"
+add name=File regexp="^.*get.+(\\.iso|\\.exe|\\.zip|\\.rar|\\.7z|\\.gho|\\.pdf\
+    |\\.avi|\\.mkv|\\.wmv|\\.wav|\\.flac|\\.ape|\\.msi).*\$"
+add name=QQsp regexp="(^\\x03.\?\\xE1\\x8D|^\\x02\\x02|^\\x04\\x1E)"
+add name=DNS regexp="^.\?.\?.\?.\?[\\x01\\x02].\?.\?.\?.\?.\?.\?[\\x01-\?][a-z\
+    0-9][\\x01-\?a-z]*[\\x02-\\x06][a-z][a-z][fglmoprstuvz]\?[aeop]\?(um)\?[\\\
+    x01-\\x10\\x1c][\\x01\\x03\\x04\\xFF]"
+add name=Http-jpg regexp="^.*(post|POST|get|GET).+\\.jpg.+\\http"
+add name=vie regexp="\\.swf|\\.flv"
+add name=flv regexp="^.*get.+\\.flv.*\$"
+add name=Youku regexp="^get.+\\/youku.+\\qplayer.swf"
+add name=PPS regexp="^.\?.\?\\c.+\\c"
+add name=Ku6 regexp="^(get|post).+\\player\\.\\ku6cdn.+\\player.swf"
+add name=Qiyi regexp="^(get|post).+\\qiyi\\.\\.com\\/\\player.+\\.swf"
+add name=WebTV regexp="^.*get.+\\.(f4v|flv).*\$"
+add name=PPLive regexp="(\\x06\\x02\\xA8\\xC0\\xB1\\x13|\\xA8\\x02\\x06\\x19\\\
+    x1A\\x5F\\x1B\\x6F\\xAE\\xE1|^get.+\\mp4.\?\\key.+\\pplive)"
+add name=live365 regexp=membername.*session.*player
+add name=xunlei regexp="^[()]...\?.\?.\?(reg|get|query)"
+add name=Tudou2 regexp="^(get|post).+\\tudouui\\.com.-\\player2.+\\.swf"
+add name=Sina regexp=\
+    "^(get|post).+\\you\\.\\video\\.\\sina\\.\\com\\.\\cn.+\\.swf"
+add name=163sp1 regexp=\
+    "^(get|post).+\\ws\\.\\126\\.\\net\\/\\movieplayer.+\\-.swf"
+add name=163sp2 regexp=\
+    "^(get|post).+\\netease.+(\\olyvplayer|\\flvplayer).+\\.swf"
+add name=Tudou1 regexp=\
+    "^(get|post).+\\tudouui\\.com.-\\tudouvideoplayer.+\\.swf"
+add name=pop3 regexp="^(\\+ok |-err )"
+add name=ssh regexp="^ssh-[12]\\.[0-9]"
+add name=ftp regexp="^220[\t-\r -~]*ftp"
+add name=qq regexp="^.\?\02.+\03\$"
+add name=100bao regexp="^\01\01\05\
+    \n"
+add name=vnc regexp="^rfb 00[1-9]\\.00[0-9]\
+    \n\$"
+add name=telnet regexp="^\FF[\FB-\FE].\FF[\FB-\FE].\FF[\FB-\FE]"
+add name=ssl regexp="^(.\?.\?\16\03.*\16\03|.\?.\?\01\03\01\?.*\0B)"
+add name=http-rtsp regexp="^(get[\t-\r -~]* Accept: application/x-rtsp-tunnell\
+    ed|http/(0\\.9|1\\.0|1\\.1) [1-5][0-9][0-9] [\t-\r -~]*a=control:rtsp://)"
+add name=vod_f4v regexp="^.*get.+\\.f4v.*\$"
+add name=vod_flv regexp="^.*get.+\\.flv.*\$"
+add name=vod_mp3 regexp="^.*get.+\\.mp3.*\$"
+add name=kugoo regexp="^1..\8E"
+add name=rtsp regexp="rtsp/1.0 200 ok"
+add name=pag regexp="\\.jsp|\\.shtml|\\.html|\\.htm|\\.php|\\.asp|\\.aspx"
+add name=pic regexp="\\.jpg|\\.png|\\.gif|\\.bmp"
+
+# 2:导入防火墙设置,可以自定义修改的
+/ip firewall filter
+add action=add-src-to-address-list address-list=OnLineClient \
+    address-list-timeout=2m chain=forward comment="\BF\CD\BB\A7\B6\CB" \
+    in-interface=LAN
+add action=accept chain=input connection-state=established
+add action=accept chain=input connection-state=related
+add action=drop chain=forward comment=\
+    "\B6\AA\C6\FA\B7\C7\B7\A8\CA\FD\BE\DD\B0\FC" connection-state=invalid
+add action=drop chain=input comment=\
+    "\CC\BD\B2\E2\B2\A2\B6\AA\C6\FA\B6\CB\BF\DA\C9\A8\C3\E8\C1\AC\BD\D3" \
+    log-prefix=scan-dorp protocol=tcp psd=21,3s,3,1
+add action=drop chain=input comment=\
+    "\BD\FB\D6\B9\CD\E2\CD\F8ping\CC\BD\B2\E2" log-prefix=ping-dorp protocol=\
+    icmp
+add action=drop chain=input in-interface=pppoe-out
+add action=drop chain=input comment="\C0\D5\CB\F7\B2\A1\B6\BE" dst-port=445 \
+    protocol=tcp
+add action=drop chain=input dst-port=445 protocol=udp
+add action=drop chain=input dst-port=135-139 protocol=tcp
+add action=drop chain=input dst-port=135-139 protocol=udp
+add action=accept chain=input disabled=yes protocol=icmp
+add action=drop chain=forward comment="\CF\DE\D6\C6\C3\BF\B8\F6\D6\F7\BB\FATCP\
+    \C1\AC\BD\D3\CA\FD\CE\AA150\CC\F5" connection-limit=150,32 disabled=yes
+add action=drop chain=forward comment="\B7\E2QQ" disabled=yes \
+    layer7-protocol=*8D
+add action=drop chain=input dst-port=22 protocol=tcp
+
+
+# 3:导入防火墙mangle标记 可以根据自己的需求进行自定义
+/ip firewall mangle
+add action=mark-connection chain=forward comment="DNS\BA\CDICMP" \
+    layer7-protocol=DNS new-connection-mark=dns&icmp passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=100bao \
+    new-connection-mark=dns&icmp passthrough=yes
+add action=mark-connection chain=forward new-connection-mark=dns&icmp \
+    passthrough=yes protocol=icmp
+add action=mark-packet chain=forward connection-mark=dns&icmp \
+    new-packet-mark=DNS&ICMP_up passthrough=no src-address-list=OnLineClient
+add action=mark-packet chain=forward connection-mark=dns&icmp \
+    dst-address-list=OnLineClient new-packet-mark=DNS&ICMP_down passthrough=\
+    no
+add action=mark-connection chain=forward comment="\B4\F3\D0\A1\B0\FC 0-511" \
+    new-connection-mark=small511_conn packet-size=0-511 passthrough=yes \
+    protocol=tcp src-port=!80
+add action=mark-connection chain=forward layer7-protocol=ftp \
+    new-connection-mark=small511_conn packet-size=0-511 passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=pop3 \
+    new-connection-mark=small511_conn packet-size=0-511 passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=vnc \
+    new-connection-mark=small511_conn packet-size=0-511 passthrough=yes
+add action=mark-connection chain=forward new-connection-mark=small511_conn \
+    packet-size=0-511 passthrough=yes protocol=udp
+add action=mark-packet chain=forward connection-mark=small511_conn \
+    new-packet-mark=small511_u packet-size=128-511 passthrough=no \
+    src-address-list=OnLineClient
+add action=mark-packet chain=forward connection-mark=small511_conn \
+    new-packet-mark=small511_d packet-size=128-511 passthrough=no
+add action=mark-connection chain=forward comment=vido layer7-protocol=NetTV \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=PPStream \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=http-rtsp \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=rtsp \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=163sp1 \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=163sp2 \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=vie \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=PPLive \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=Sina \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=Qiyi \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=Youku \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=QQsp \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=Tudou2 \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=Tudou1 \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=WebTV \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=flv \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=live365 \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=PPS \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=Ku6 \
+    new-connection-mark=vido passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=QQLive \
+    new-connection-mark=vido passthrough=yes
+add action=mark-packet chain=forward connection-mark=vido dst-address-list=\
+    OnLineClient new-packet-mark=vido_down passthrough=no
+add action=mark-packet chain=forward connection-mark=vido new-packet-mark=\
+    vidio_up passthrough=no src-address-list=OnLineClient
+add action=mark-connection chain=forward comment=file layer7-protocol=File \
+    new-connection-mark=file passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=QQMusic \
+    new-connection-mark=file passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=Kugou \
+    new-connection-mark=file passthrough=yes
+add action=mark-packet chain=forward connection-mark=file dst-address-list=\
+    OnLineClient new-packet-mark=file_down passthrough=no
+add action=mark-packet chain=forward new-packet-mark=file_up passthrough=no \
+    src-address-list=OnLineClient
+add action=mark-connection chain=forward comment=\
+    "\B4\F3\D0\A1\B0\FC 1301-1500" new-connection-mark=big1500_conn \
+    packet-size=1301-1500 passthrough=yes
+add action=mark-packet chain=forward connection-mark=big1500_conn \
+    new-packet-mark=big1500_u packet-size=1301-1500 passthrough=no \
+    src-address-list=OnLineClient
+add action=mark-packet chain=forward connection-mark=big1500_conn \
+    dst-address-list=OnLineClient new-packet-mark=big1500_d packet-size=\
+    1301-1500 passthrough=no
+add action=mark-connection chain=forward comment=http layer7-protocol=Http \
+    new-connection-mark=http passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=Http-web \
+    new-connection-mark=http passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=ssl \
+    new-connection-mark=small511_conn passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=pag \
+    new-connection-mark=small511_conn passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=pic \
+    new-connection-mark=small511_conn passthrough=yes
+add action=mark-connection chain=forward dst-port=443 new-connection-mark=\
+    http passthrough=yes protocol=tcp
+add action=mark-connection chain=forward dst-port=80,8000,8080 \
+    new-connection-mark=http packet-size=0-511 passthrough=yes protocol=tcp
+add action=mark-connection chain=forward layer7-protocol=Http-jpg \
+    new-connection-mark=http passthrough=yes
+add action=mark-connection chain=forward layer7-protocol=Http-img \
+    new-connection-mark=http passthrough=yes
+add action=mark-packet chain=forward connection-mark=http dst-address-list=\
+    OnLineClient new-packet-mark=http_down passthrough=no
+add action=mark-packet chain=forward connection-mark=http new-packet-mark=\
+    http_up passthrough=no src-address-list=OnLineClient
+add action=mark-connection chain=forward comment=other new-connection-mark=\
+    other passthrough=yes
+add action=mark-packet chain=forward connection-mark=other dst-address-list=\
+    OnLineClient new-packet-mark=other_down passthrough=no
+add action=mark-packet chain=forward comment="\BD\E1\CA\F8" connection-mark=\
+    other new-packet-mark=other_up passthrough=no src-address-list=\
+    OnLineClient
+
+# 4:导入queue type 设置
+/queue type
+add kind=pcq name=0m_down pcq-classifier=dst-address pcq-total-limit=10000KiB
+add kind=pcq name=0m_up pcq-classifier=src-address pcq-total-limit=10000KiB
+set 11 pfifo-limit=50
+
+# 5:导入queue tree设置 根据自己的带宽设置限速速度
+/queue tree
+add max-limit=24M name=down parent=global queue=default
+add limit-at=256k max-limit=2M name=icmp@dns_down packet-mark=DNS&ICMP_down \
+    parent=down priority=1 queue=0m_down
+add burst-limit=16M burst-threshold=6M burst-time=5s limit-at=512k max-limit=\
+    12M name=http_down packet-mark=http_down parent=down priority=3 queue=\
+    0m_down
+add burst-limit=20M burst-threshold=6M burst-time=3s limit-at=512k max-limit=\
+    18M name=vido packet-mark=vido_down parent=down priority=5 queue=0m_down
+add burst-limit=22M burst-threshold=10M burst-time=5s limit-at=512k \
+    max-limit=20M name=file packet-mark=file_down parent=down priority=7 \
+    queue=0m_down
+add limit-at=512k max-limit=12M name=other packet-mark=other_down parent=down \
+    priority=4 queue=0m_down
+add max-limit=1200k name=up parent=global queue=default
+add burst-limit=256k burst-threshold=100k burst-time=3s limit-at=64k \
+    max-limit=128k name=icmp&dns_up packet-mark=DNS&ICMP_up parent=up \
+    priority=1 queue=0m_up
+add burst-limit=1M burst-threshold=256k burst-time=3s limit-at=128k \
+    max-limit=512k name=http_up packet-mark=http_up parent=up priority=3 \
+    queue=0m_up
+add limit-at=64k max-limit=128k name=vido_up packet-mark=vidio_up parent=up \
+    priority=5 queue=0m_up
+add burst-limit=1M burst-threshold=256k burst-time=3s limit-at=128k \
+    max-limit=512k name=file_up packet-mark=file_up parent=up priority=7 \
+    queue=0m_up
+add limit-at=64k max-limit=256k name=other_up packet-mark=other_up parent=up \
+    priority=4 queue=0m_up
+add burst-limit=24M burst-threshold=10M burst-time=5s limit-at=512k \
+    max-limit=22M name=big_packet packet-mark=big1500_d parent=down priority=\
+    6 queue=0m_down
+add burst-limit=16M burst-threshold=5M burst-time=3s limit-at=512k max-limit=\
+    10M name=small_packet packet-mark=small511_d parent=down priority=2 \
+    queue=0m_down
+add burst-limit=384k burst-threshold=180k burst-time=3s limit-at=128k \
+    max-limit=256k name=small_packet_up packet-mark=small511_u parent=up \
+    priority=2 queue=0m_up
